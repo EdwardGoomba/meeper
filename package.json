@@ -7,9 +7,11 @@
   "author": "EdwardGoomba <edward@dock90.io>",
   "license": "MIT",
   "scripts": {
-    "clean": "rm -r ./img/*"
+    "clean": "rm -r ./img/*",
+    "wipe": "rm -r ./json/*"
   },
   "dependencies": {
+    "dotenv": "^8.2.0",
     "puppeteer": "^5.2.1"
   }
 }

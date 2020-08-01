@@ -1,3 +1,4 @@
+require('dotenv').config()
 const puppeteer = require('puppeteer');
 const fs = require('fs')
 
@@ -19,16 +20,16 @@ function delay(time) {
 
   // following code specific to dnbhoovers
   // login
-  await page.waitForSelector('input[name="username"]');
-  await page.type('input[name="username"]', 'jverdelli@higherinfogroup.com', { delay: 100 });
+  await page.waitForSelector('input[name="username"]', { visible: true });
+  await page.type('input[name="username"]', process.env.DB_USER, { delay: 100 });
   console.log('Username Typed')
 
   await page.click('.continue-btn')
   console.log('Continue Button Clicked')
 
   await delay(2000);
-  await page.waitForSelector('input[name="password"]');
-  await page.type('input[name="password"]', 'dbhoovers1', { delay: 100 });
+  await page.waitForSelector('input[name="password"]', { visible: true });
+  await page.type('input[name="password"]', process.env.DB_PASS, { delay: 100 });
   console.log('Password Typed')
 
   await delay(2000);
@@ -37,14 +38,14 @@ function delay(time) {
 
 
   // now logged in - verify login
-  await delay(4000);
+  await delay(3000);
   await page.screenshot({ path: './img/home.png' });
   console.log('Logged In!')
 
   // navigate to contact page
   await page.goto('https://app.dnbhoovers.com/search/contact');
   // verify page load
-  await delay(2000)
+  await delay(4000)
   await page.screenshot({ path: './img/searchContact.png' });
   console.log('Contact Search Page Loaded')
 
@@ -67,24 +68,27 @@ function delay(time) {
   await page.screenshot({ path: './img/testCityResults.png' })
   console.log('Got Results')
 
-  const contactData = await page.evaluate(() => {
+  const contactData = await page.$$eval('div.container-fluid', nodes => {
     console.log('Evaluating Now')
-    const contacts = []
+    return nodes.map(node => {
+      const name = node.querySelector('.name-row').textContent.trim()
 
-    const contactsElms = document.querySelectorAll('div.span12');
-    console.log(contactsElms)
-    return contactsElms
-  })
+      return {
+        name,
+      }
+    })
+  });
 
-  console.log(contactData)
+  // console.log(contactData)
 
-  // fs.writeFile(
-  //   './json/contacts.json',
-  //   JSON.stringify(contactData, null, 2),
-  //   (err) => err ? console.error('Data not written!', err) : console.log('Data written!')
-  // )
+  fs.writeFile(
+    './json/contacts.json',
+    JSON.stringify(contactData, null, 2),
+    (err) => err ? console.error('Data not written!', err) : console.log('Data written!')
+  )
 
   // logout
+  console.log('Logging Out')
   await page.goto('https://app.dnbhoovers.com/logout')
   await page.screenshot({ path: './img/logout.png' });
 
